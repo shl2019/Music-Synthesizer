@@ -2,6 +2,12 @@
 ## Go Inbed Group
 
 
+---   
+### Music Synthesizer
+![image2](https://github.com/shl2019/EmbeddedCW2/blob/main/Music%20Synthesizer.png)
+<br/>
+
+---   
 ### User Interface   
 
 ##### Joy stick
@@ -16,10 +22,6 @@ The third knob is for timbre selection.
 The fourth knob is for volume selection.   
 ##### Keyboard Mode
 When the keyboard is set to TX(transmitting) mode, it will not generated any sound, but auto-configured as an extension of RX keyboard and play corresponding octave.   
-
----   
-### Music Synthesizer
-![image2](https://github.com/shl2019/EmbeddedCW2/blob/main/Music%20Synthesizer.png)
 <br/>
 
 ---   
