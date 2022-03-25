@@ -158,3 +158,247 @@ xQueueReceive(msgInQ, RX_Message, portMAX_DELAY);
 ```
 It then decodes the RX message. To avoid the potential problem and optimise the execution time of every task, we didn’t write the code to play the note here, but we write it with an if loop in scanKey_task. The decode task could potentially be removed, but we keep it here for completion of the task.   
 <br/>
+
+---
+### Advanced Feature 1: Frequency changing by Knob 1   
+
+In this stage, we implement a frequency shifting method to increase or decrease octaves. We change select 5 different scales, to have a different octave.   
+
+```
+    int32_t LocShifts = (int)(joyX+joyY);
+int scale = knob1.getVolume();
+    if(scale ==0){
+      LocShifts = LocShifts/8;
+    }else if(scale == 1){
+      LocShifts = LocShifts/4;
+    }else if(scale == 2){
+      LocShifts = LocShifts/2;      
+    }
+    else if(scale == 4){
+      LocShifts = LocShifts*2;
+    }else if(scale == 5){
+      LocShifts = LocShifts*4;
+    }
+    doubleShift = (double)(LocShifts/(double)joyStickOffset);
+```
+
+We first read the information from joystick. Add the joyX and joyY together, to have a number between 0 to 2000. If the stick is in default level, then LocShift will be about 1000. If we move the joystick, this number will change. When it becomes larger, the frequency should be higher, when it is lower, the frequency will decrease.
+We then change this basic frequency scaling variable by changing the knob1. We set 3 to be our base scale, so A3 = 440Hz. A2 = 220Hz, and so on. Thus, scale 2 will divide the frequency by 2, and scale 4 will multiply the frequency by 2. After selecting the scale, we will normalize this value to be centred around 1.0. So we divide it by joyStickOffset, which is the default value of joyX+joyY read in setup().
+
+```
+    xSemaphoreTake(keyArrayMutex, portMAX_DELAY);
+    shifts = doubleShift;
+```
+Now we pass it to shifts, which can be read by sampleISR. Since the double variable cannot be loaded in an atomic way. We will pass it inside a mutex lock, to avoid any asynchronies error.   
+
+---
+### Advanced Feature 2: Sine and Square Waves Generation   
+
+We add two more wave types, sine and square respectively.   
+```
+int32_t generateSineWave(){
+  static int8_t step[12];
+  for(int i= 0;i<12;i++){
+    if(step[i]>=ShiftedPeriod[i]){
+      step[i] = 0;
+  }
+
+  }
+  int32_t Vout=0;
+  for(int i = 0; i<currentKeysNumber;i++){
+        Vout += sineStep[currentKey[i]-1][step[currentKey[i]-1]];
+        step[currentKey[i]-1]+=1;   
+    }
+    if(currentKeysNumber!=0&&currentKeysNumber!=1){
+    Vout = (int)(Vout/(currentKeysNumber*0.9));}
+
+    Vout = Vout >> (8 - knob3.getVolume()/2);
+    return Vout;
+
+}
+```
+
+Since we want to minimize the calculation inside sampleISR, we need to calculate the stepSize for sine, and each period for each note in the setup. The static array step[] will return the current step for each note. When the step reaches one period, it will stop, then go back to 0 and count again.   
+
+```
+for(int j = 0;j<12;j++){
+  for(int i =0;i<100;i++){
+        sineStep[j][i] = (int)128*sin(2*(NoteFrequencyTable[j]/22000)*PI*i);
+  }
+  Period[j] = 22000/NoteFrequencyTable[j];
+}
+```
+
+The sineStep is a 2D array, calculated what the step will be for different 12 notes. And Period[j] stores the number of ticks needed to complete one period. For example, for a 440Hz frequency, the ticks needed will be 22000/440 = 50.   
+
+```
+int32_t generateSineWave(){
+  static int8_t step[12];
+  for(int i= 0;i<12;i++){
+    if(step[i]>=ShiftedPeriod[i]){
+      step[i] = 0;
+  }
+
+  }
+  int32_t Vout=0;
+  for(int i = 0; i<currentKeysNumber;i++){
+        Vout += sineStep[currentKey[i]-1][step[currentKey[i]-1]];
+        step[currentKey[i]-1]+=1;   
+    }
+    if(currentKeysNumber!=0&&currentKeysNumber!=1){
+    Vout = (int)(Vout/(currentKeysNumber*0.9));}
+
+    Vout = Vout >> (8 - knob3.getVolume()/2);
+    return Vout;
+}
+
+```
+Now, we have a lookup table here, so we can add the step on Vout by simply checking what the key pressed, and what the step is right now. Note, we average the Vout when there are multiple keys pressed since otherwise, the Vout will go beyond 255. But we also add currentKeyNumber*0.9 here, since we detect that when multiple keys are pressed, the total Vout after average, will be so small. So the more the key is pressed, the smaller the sound is. By multiplying 0.9, we can keep the same volume with multiple keys. The volume can be controlled by Kob3 by shifting the Vout to   
+
+```
+(8 - knob3.getVolume()/2);
+```
+
+Also, we can change the frequency of sine by the joystick or octave knob.   
+
+```
+  for(int i= 0;i<12;i++){
+    if(step[i]>=ShiftedPeriod[i]){
+      step[i] = 0;
+  }
+}
+```
+
+The for loop above will reset the step by a shifted period, which is defined below.
+
+```
+    for(int i= 0; i<12;i++){
+        ShiftedPeriod[i] = (Period[i]/(LocShifts/(double)joyStickOffset));
+    }
+```
+
+Thus, when the period changes, the frequency will change accordingly. So we can hear a twisted sin wave when rotating the stick offset. 
+
+Square wave：
+
+```
+int32_t generateSquareWave(){
+  static int8_t step[12];
+  int32_t Vout=0;
+  
+  for(int i= 0;i<12;i++){
+        if(step[i]>ShiftedPeriod[i]){
+      step[i] = 0;
+    }
+  }
+  for(int i = 0; i<currentKeysNumber;i++){
+      if(step[currentKey[i]-1]>ShiftedPeriod[i]/2){
+        Vout += 128;
+      }else{
+        Vout += -128;
+      }
+        step[currentKey[i]-1]+=1;   
+    }
+    
+    Vout = Vout >> (8 - knob3.getVolume()/2);
+    return Vout;
+    
+}
+```
+The Square has a structure similar to sin, except that it doesn’t have a lookup table. Just simply set the Vout to 128 when the current step is lower than ShiftedPeriod/2, and -128, when higher than ShiftedPeriod/2.   
+
+### Advanced Feature 3: Chords with Multiple Keyboards   
+
+We want two keyboards to generate sound with different frequencies at the same time. The first thing we need is a knob to select the current mode. 0 and 1, for receiver and sender.   
+```
+  currentNob0s = keyarray2D[6][0];    
+if(previousNobs == 1 && currentNob0s == 0){
+      Nob0sdelta = 1;
+    }else{
+      Nob0sdelta = 0;
+    }
+    if(Nob0sdelta == 1){
+        localKnob0s = __atomic_load_n(&knob0s,__ATOMIC_RELAXED); 
+        if(localKnob0s == 0){
+        __atomic_store_n(&knob0s,1,__ATOMIC_RELAXED); 
+        }else{
+        __atomic_store_n(&knob0s,0,__ATOMIC_RELAXED); 
+        }
+    }
+    localKnob0s = __atomic_load_n(&knob0s,__ATOMIC_RELAXED); 
+    previousNobs = keyarray2D[6][0];
+```
+The code above uses nob0s, to control the mode. When pressed and release, the mode will go to the next state. Since nob0s is a square wave function, when we press and release, the output will be like 00001111110000. Firstly, we need to create a Nob0sdelta, which is a delta function of nob0s. We store the previous state of nob0s, and compare it with the current state if it changes from 1 to 0, which means it has been pressed, so Nob0delta will be 1, otherwise 0. Then, we atomic load knob0s to localKnob0s to avoid synchronisation bug, flip the state of knod0s when the Nob0delta is 1. When this is finished, the previousNobs will be updated.   
+
+Now, we focus on mode0, the receiver part. RX_Message[1] stores the number of keys been pressed on the sender keyboard. We pass it to a global variable called SecondKeysnumber (inside the Mutex lock). Then we check how many keys have been pressed in the receiver keyboard. If the number is smaller than 12, we will have space to attach the key pressed from the sender keyboard to the current keyboard. The “currentKey” is simply the key number been pressed. For example, if C and D have been pressed, the currentKey will look like [1,3,0,0,0….]. Thus, after putting all the keys from another keyboard, we can inherit the its information. Then modify or change its frequency later on.   
+
+```
+if(localKnob0s == 0 && RX_Message[0]== 80){
+      SecondKeysnumber = RX_Message[1];
+      if(keysnumber<12){
+        int j = 0;
+        for(int i =keysnumber;i<12;i++){
+          if(RX_Message[2+j]!=0){
+              currentKey[keysnumber]=RX_Message[2+j];
+              j++;
+              keysnumber++;
+            }
+          }
+        }
+      }else{
+        SecondKeysnumber = 0;
+      }
+```
+For mode 1, the sender will send key number, “P””R” information, and the currentKey array to the receiver. If we want to connect more than two keyboards, we don’t need to modify this part. Since the currentkey inherits information from the previous keyboard.   
+
+```
+  if(localKnob0s==1){
+        if(currentKey[0]!=0){
+          TX_Message[1]=keysnumber;
+          TX_Message[0] = 'P';
+          //TX_Message[1] = knob1.getVolume();
+          for(int i = 0; i<12;i++){
+          TX_Message[i+2] = currentKey[i];
+          }
+        }else{
+          TX_Message[1] = 0;
+          TX_Message[0] = 'R';
+        }
+    
+    }
+```
+```
+    updateStepList();
+```
+
+ Then, we will use this modified currentKey array, wo generate a list f steps by using updateStepList().   
+ 
+```
+void updateStepList(){
+      for(int i=0;i<12;i++){
+        currentStepSizeList[i] = stepSizes[currentKey[i]];
+      }
+}
+```
+
+Which put the steps in order according to currentKey[].   
+
+Now, we have the information of how many keys have been pressed from sender keyboards(SecondKeynumber) and the step list (currentStepSizeList). So we could increase an octave. By shifting the keys from the sender keyboard to shifts*2. Thus, a chord can be generated from two keyboards at the same time in one speaker. Since we inherit the second keyboard to the first keyboard, the joystick, octave knob, and sin, square wave all are functional in the receiver keyboard.   
+
+```
+int32_t generateSawtoothWave(int32_t *phaseAcc){
+  int32_t Vout=0;
+    for(int i = 0; i<(currentKeysNumber-SecondKeysnumber);i++){
+          phaseAcc[i] += (int)((currentStepSizeList[i]*shifts));
+          Vout += phaseAcc[i]>>25;
+      }
+    for(int i = (currentKeysNumber-SecondKeysnumber);i<currentKeysNumber;i++){
+      phaseAcc[i] += (int)(currentStepSizeList[i]*shifts2);
+      Vout += phaseAcc[i]>>25;
+    }
+
+      Vout = Vout >> (8 - knob3.getVolume()/2);
+      return Vout;
+  }
+```
+
