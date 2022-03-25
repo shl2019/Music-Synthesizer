@@ -2,13 +2,16 @@
 ## Go Inbed Group
 
 
-  
+
+---   
+
 ### Music Synthesizer
 
 <img src="https://github.com/shl2019/EmbeddedCW2/blob/main/Music%20Synthesizer.png" width="550" height="500">
 <br/>
 
 ---   
+
 ### User Interface   
 
 ##### Joy stick
@@ -46,7 +49,7 @@ The CAN_TX_Task is the thread that is triggered by the message queue and semapho
 
 ---   
 
-### Characterisation of Tasks with Initiation Interval and Execution Time and CPU Time Utilisation
+### Characterisation of Tasks with Initiation Interval and Execution Time and CPU Time Utilisation   
 
 The table below demonstrates the minimum initiation interval τi set and maximum execution time Ti measured by us. The Ti is obtained from averaging total execution time with 32 iterations. The CPU time utilisation is calculated by the formula Maximum Execution Time/ Minimum   
 <br/>
@@ -63,7 +66,8 @@ Initiation Interval * 100, i.e., &emsp; ![1](http://latex.codecogs.com/svg.latex
 
 ---   
 
-### Critical Instant Analysis of Rate Monotonic Scheduler
+### Critical Instant Analysis of Rate Monotonic Scheduler   
+
 By conducting a critical instant analysis of the rate monotonic scheduler, we are checking whether all deadlines are met under worst-case conditions. As concluded from the table above, the deadline of the lowest-priority task is τn = 100000 μs. By referring to the formula of latency, the task execution counts and per-task execution times are calculated as follows. Those times are summed together and compared with the initiation interval of the longest task, which is displayUpdateTask in this case.<br/>  
 Latency is calculated by &emsp; ![2](http://latex.codecogs.com/svg.latex?Ln=\sum_{i}\frac{\tau_n}{\tau_i}T_i)  
 <br/>
@@ -107,8 +111,7 @@ in scanKey tread when read the keyboard input and unlocked by
 xSemaphoreGive(keyArrayMutex);   
 ```
 
-when reading ends.  
-<br/>
+when reading ends.   
 
 The second data struct we used is semaphore, when sharing/sending the data across the thread, we don’t want the CPU cycle to be used by polling that doesn’t do anything. For example, we define a semaphore to our CAN_TX function,   
 
@@ -116,7 +119,7 @@ The second data struct we used is semaphore, when sharing/sending the data acros
 SemaphoreHandle_t CAN_TX_Semaphore;
 ```
 
- We use Semaphore to indicate if the message can be accepted, the Semaphore will be given by CAN_TX_ISR when the is space in msgOutQ mailbox,   
+We use Semaphore to indicate if the message can be accepted, the Semaphore will be given by CAN_TX_ISR when the is space in msgOutQ mailbox,   
 
 ```
 void CAN_TX_ISR (void) {
@@ -190,11 +193,14 @@ We then change this basic frequency scaling variable by changing the knob1. We s
     shifts = doubleShift;
 ```
 Now we pass it to shifts, which can be read by sampleISR. Since the double variable cannot be loaded in an atomic way. We will pass it inside a mutex lock, to avoid any asynchronies error.   
+<br/>
 
----
+---   
+
 ### Advanced Feature 2: Sine and Square Waves Generation   
 
 We add two more wave types, sine and square respectively.   
+
 ```
 int32_t generateSineWave(){
   static int8_t step[12];
@@ -253,6 +259,7 @@ int32_t generateSineWave(){
 }
 
 ```
+
 Now, we have a lookup table here, so we can add the step on Vout by simply checking what the key pressed, and what the step is right now. Note, we average the Vout when there are multiple keys pressed since otherwise, the Vout will go beyond 255. But we also add currentKeyNumber*0.9 here, since we detect that when multiple keys are pressed, the total Vout after average, will be so small. So the more the key is pressed, the smaller the sound is. By multiplying 0.9, we can keep the same volume with multiple keys. The volume can be controlled by Kob3 by shifting the Vout to   
 
 ```
@@ -269,7 +276,7 @@ Also, we can change the frequency of sine by the joystick or octave knob.
 }
 ```
 
-The for loop above will reset the step by a shifted period, which is defined below.
+The for loop above will reset the step by a shifted period, which is defined below.   
 
 ```
     for(int i= 0; i<12;i++){
@@ -277,9 +284,9 @@ The for loop above will reset the step by a shifted period, which is defined bel
     }
 ```
 
-Thus, when the period changes, the frequency will change accordingly. So we can hear a twisted sin wave when rotating the stick offset. 
+Thus, when the period changes, the frequency will change accordingly. So we can hear a twisted sin wave when rotating the stick offset.   
 
-Square wave：
+Square wave:   
 
 ```
 int32_t generateSquareWave(){
@@ -305,11 +312,16 @@ int32_t generateSquareWave(){
     
 }
 ```
+
 The Square has a structure similar to sin, except that it doesn’t have a lookup table. Just simply set the Vout to 128 when the current step is lower than ShiftedPeriod/2, and -128, when higher than ShiftedPeriod/2.   
+<br/>
+
+---   
 
 ### Advanced Feature 3: Chords with Multiple Keyboards   
 
 We want two keyboards to generate sound with different frequencies at the same time. The first thing we need is a knob to select the current mode. 0 and 1, for receiver and sender.   
+
 ```
   currentNob0s = keyarray2D[6][0];    
 if(previousNobs == 1 && currentNob0s == 0){
@@ -327,10 +339,10 @@ if(previousNobs == 1 && currentNob0s == 0){
     }
     localKnob0s = __atomic_load_n(&knob0s,__ATOMIC_RELAXED); 
     previousNobs = keyarray2D[6][0];
-```
+```   
 The code above uses nob0s, to control the mode. When pressed and release, the mode will go to the next state. Since nob0s is a square wave function, when we press and release, the output will be like 00001111110000. Firstly, we need to create a Nob0sdelta, which is a delta function of nob0s. We store the previous state of nob0s, and compare it with the current state if it changes from 1 to 0, which means it has been pressed, so Nob0delta will be 1, otherwise 0. Then, we atomic load knob0s to localKnob0s to avoid synchronisation bug, flip the state of knod0s when the Nob0delta is 1. When this is finished, the previousNobs will be updated.   
 
-Now, we focus on mode0, the receiver part. RX_Message[1] stores the number of keys been pressed on the sender keyboard. We pass it to a global variable called SecondKeysnumber (inside the Mutex lock). Then we check how many keys have been pressed in the receiver keyboard. If the number is smaller than 12, we will have space to attach the key pressed from the sender keyboard to the current keyboard. The “currentKey” is simply the key number been pressed. For example, if C and D have been pressed, the currentKey will look like [1,3,0,0,0….]. Thus, after putting all the keys from another keyboard, we can inherit the its information. Then modify or change its frequency later on.   
+Now, we focus on mode0, the receiver part. RX_Message[1] stores the number of keys been pressed on the sender keyboard. We pass it to a global variable called SecondKeysnumber (inside the Mutex lock). Then we check how many keys have been pressed in the receiver keyboard. If the number is smaller than 12, we will have space to attach the key pressed from the sender keyboard to the current keyboard. The “currentKey” is simply the key number been pressed. For example, if C and D have been pressed, the currentKey will look like [1,3,0,0,0….]. Thus, after putting all the keys from another keyboard, we can inherit the its information. Then modify or change its frequency later on.
 
 ```
 if(localKnob0s == 0 && RX_Message[0]== 80){
@@ -401,4 +413,11 @@ int32_t generateSawtoothWave(int32_t *phaseAcc){
       return Vout;
   }
 ```
+<br/>
 
+---
+### Advanced Feature 4: More Vivid Display Mode
+<br/>
+
+---   
+## END
