@@ -163,7 +163,7 @@ It then decodes the RX message. To avoid the potential problem and optimise the 
 <br/>
 
 ---
-### Advanced Feature 1: Frequency changing by Knob 1   
+### Advanced Feature 1: Frequency Changing with Knob and Joystick
 
 In this stage, we implement a frequency shifting method to increase or decrease octaves. We change select 5 different scales, to have a different octave.   
 
@@ -413,10 +413,6 @@ int32_t generateSawtoothWave(int32_t *phaseAcc){
       return Vout;
   }
 ```
-<br/>
-
----
-### Advanced Feature 4: More Vivid Display Mode
 <br/>
 
 ---   
