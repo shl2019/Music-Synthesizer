@@ -36,7 +36,7 @@ Initiation Interval * 100, i.e., &emsp; ![1](http://latex.codecogs.com/svg.latex
 |     decodeTask    |            696           |          32          |              21.75             |                25200               |       0.086309524      |
 |    CAN_TX_Task    |           27913          |          32          |            872.28125           |                1670                |       52.23241018      |
 |     sampleISR     |            534           |          32          |             16.6875            |              45.45454              |       36.71250441      |
-
+<br/>
 
 ---   
 
@@ -54,12 +54,14 @@ The latency result shows that all tasks are executed within the initiation inter
 |    CAN_TX_Task    |                 1670                 |            872.2813            | 59.88024 |    52232.41    |                                                      |
 |   Total Latency   |                                      |                                |          |    72017.44    |                        <100000                       |
 <br/>
+
 ---   
 
-### Flowchart   
+### Dependency Flowchart   
    
 ![image](https://github.com/shl2019/EmbeddedCW2/blob/main/Flow%20Chart.png)   
 <br/>
+
 ---   
 
 ### Identification of Shared Data Structure and Methods for Safe Access and Synchronisation   
@@ -105,6 +107,7 @@ and taken by  CAN_TX_Task before CAN_TX.
 xSemaphoreTake(CAN_TX_Semaphore, portMAX_DELAY);
 ```
 <br/>
+
 ---   
 
 ### Inter-task Blocking Dependencies Analysis and Deadlock Possibility   
