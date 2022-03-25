@@ -8,11 +8,11 @@
         {
             "name": "PlatformIO",
             "includePath": [
-                "c:/MS/Music-synthesizer/include",
-                "c:/MS/Music-synthesizer/src",
-                "c:/MS/Music-synthesizer/lib/ES_CAN",
-                "c:/MS/Music-synthesizer/.pio/libdeps/nucleo_l432kc/STM32duino FreeRTOS/src",
-                "c:/MS/Music-synthesizer/.pio/libdeps/nucleo_l432kc/U8g2/src",
+                "c:/EmbeddedCW2/EmbeddedCW2/include",
+                "c:/EmbeddedCW2/EmbeddedCW2/src",
+                "c:/EmbeddedCW2/EmbeddedCW2/lib/ES_CAN",
+                "c:/EmbeddedCW2/EmbeddedCW2/.pio/libdeps/nucleo_l432kc/STM32duino FreeRTOS/src",
+                "c:/EmbeddedCW2/EmbeddedCW2/.pio/libdeps/nucleo_l432kc/U8g2/src",
                 "C:/Users/peter/.platformio/packages/framework-arduinoststm32/libraries/Wire/src",
                 "C:/Users/peter/.platformio/packages/framework-arduinoststm32/libraries/SPI/src",
                 "C:/Users/peter/.platformio/packages/framework-arduinoststm32/cores/arduino/avr",
@@ -52,11 +52,11 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
-                    "c:/MS/Music-synthesizer/include",
-                    "c:/MS/Music-synthesizer/src",
-                    "c:/MS/Music-synthesizer/lib/ES_CAN",
-                    "c:/MS/Music-synthesizer/.pio/libdeps/nucleo_l432kc/STM32duino FreeRTOS/src",
-                    "c:/MS/Music-synthesizer/.pio/libdeps/nucleo_l432kc/U8g2/src",
+                    "c:/EmbeddedCW2/EmbeddedCW2/include",
+                    "c:/EmbeddedCW2/EmbeddedCW2/src",
+                    "c:/EmbeddedCW2/EmbeddedCW2/lib/ES_CAN",
+                    "c:/EmbeddedCW2/EmbeddedCW2/.pio/libdeps/nucleo_l432kc/STM32duino FreeRTOS/src",
+                    "c:/EmbeddedCW2/EmbeddedCW2/.pio/libdeps/nucleo_l432kc/U8g2/src",
                     "C:/Users/peter/.platformio/packages/framework-arduinoststm32/libraries/Wire/src",
                     "C:/Users/peter/.platformio/packages/framework-arduinoststm32/libraries/SPI/src",
                     "C:/Users/peter/.platformio/packages/framework-arduinoststm32/cores/arduino/avr",
