@@ -21,7 +21,7 @@ The CAN_TX_Task is the thread that is triggered by the message queue and semapho
 
 
 ---
-### Characterisation of Tasks and CPU Time Utilisation
+### Characterisation of Tasks with Initiation Interval and Execution Time and CPU Time Utilisation
 
 The table below demonstrates the minimum initiation interval τi set and maximum execution time Ti measured by us. The Ti is obtained from averaging total execution time with 32 iterations. The CPU time utilisation is calculated by the formula Maximum Execution Time/ Minimum   
 <br/>
@@ -37,7 +37,7 @@ Initiation Interval * 100, i.e., &emsp; ![1](http://latex.codecogs.com/svg.latex
 
 
 ---
-### Critical Instant Analysis
+### Critical Instant Analysis of Rate Monotonic Scheduler
 By conducting a critical instant analysis of the rate monotonic scheduler, we are checking whether all deadlines are met under worst-case conditions. As concluded from the table above, the deadline of the lowest-priority task is τn = 100000 μs. By referring to the formula of latency, the task execution counts and per-task execution times are calculated as follows. Those times are summed together and compared with the initiation interval of the longest task, which is displayUpdateTask in this case.<br/>  
 Latency is calculated by &emsp; ![2](http://latex.codecogs.com/svg.latex?Ln=\sum_{i}\frac{\tau_n}{\tau_i}T_i)  
 <br/>
