@@ -1,11 +1,12 @@
 # **Embedded Systems CW2 Music Synthesizer**
 ## Go Inbed Group
 
+
+---
 ### Identification of All our Tasks   
 
 There are four main tasks implemented in our system, ScanKeysTask, CAN_TX_Task, decodeTask, and displayUpdateTask.   
 
----
 #### scanKeyTask   
 The ScanKeyTask is the thread that initialled with delay, it scans the key array to detect if keys or knobs have been pressed, also the joystick. It then performs the associated configuration, for example, the octave, timbre, mode and timbre selection. The information will also be sent to another keyboard by the thread-safe queue. Once everything is configured, the Sample_ISR which is interrupt triggered will write the output voltage to the speaker.
 
