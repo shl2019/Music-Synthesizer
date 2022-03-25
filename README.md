@@ -4,10 +4,17 @@
 
 ### User Interface   
 
+##### Joy stick
 The joy stick is configured to changing the note frequency lightly.   
+##### First Knob
 The first knob on the left is a press knob that will change the keyboard mode between transmit/receive.   
-The second knob is for octave selection. The third knob is for timbre selection.   
+##### Second Knob
+The second knob is for octave selection.   
+##### Third Knob
+The third knob is for timbre selection.   
+##### Fourth Knob
 The fourth knob is for volume selection.   
+##### Keyboard Mode
 When the keyboard is set to TX(transmitting) mode, it will not generated any sound, but auto-configured as an extension of RX keyboard and play corresponding octave.
 
 
