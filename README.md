@@ -34,6 +34,5 @@ The latency result shows that all tasks are executed within the initiation inter
 
 ---
 ### Flowchart
-<br/>
-![image](http://github.com/sc1019/Music-synthesizer/raw/master/Flow%20Chart.png)
-<br/>
+![image]()
+
