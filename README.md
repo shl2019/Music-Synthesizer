@@ -2,7 +2,8 @@
 ## Go Inbed Group
 
 
----
+---   
+
 ### Identification of All our Tasks   
 
 There are four main tasks implemented in our system, ScanKeysTask, CAN_TX_Task, decodeTask, and displayUpdateTask.   
@@ -18,9 +19,10 @@ The decode_Task is a thread also triggered by the message queue, to minimise the
 
 #### CAN_TX_Task   
 The CAN_TX_Task is the thread that is triggered by the message queue and semaphore, it will only execute when there are messages in the In Mailbox and take the semaphore, the semaphore will be given in CAN_TX_ISR so every time the mailbox becomes available the semaphore will be given.   
+<br/>
 
+---   
 
----
 ### Characterisation of Tasks with Initiation Interval and Execution Time and CPU Time Utilisation
 
 The table below demonstrates the minimum initiation interval τi set and maximum execution time Ti measured by us. The Ti is obtained from averaging total execution time with 32 iterations. The CPU time utilisation is calculated by the formula Maximum Execution Time/ Minimum   
@@ -36,7 +38,8 @@ Initiation Interval * 100, i.e., &emsp; ![1](http://latex.codecogs.com/svg.latex
 |     sampleISR     |            534           |          32          |             16.6875            |              45.45454              |       36.71250441      |
 
 
----
+---   
+
 ### Critical Instant Analysis of Rate Monotonic Scheduler
 By conducting a critical instant analysis of the rate monotonic scheduler, we are checking whether all deadlines are met under worst-case conditions. As concluded from the table above, the deadline of the lowest-priority task is τn = 100000 μs. By referring to the formula of latency, the task execution counts and per-task execution times are calculated as follows. Those times are summed together and compared with the initiation interval of the longest task, which is displayUpdateTask in this case.<br/>  
 Latency is calculated by &emsp; ![2](http://latex.codecogs.com/svg.latex?Ln=\sum_{i}\frac{\tau_n}{\tau_i}T_i)  
@@ -50,13 +53,15 @@ The latency result shows that all tasks are executed within the initiation inter
 |     decodeTask    |                 25200                |              21.75             | 3.968254 |    86.30952    |                                                      |
 |    CAN_TX_Task    |                 1670                 |            872.2813            | 59.88024 |    52232.41    |                                                      |
 |   Total Latency   |                                      |                                |          |    72017.44    |                        <100000                       |
+<br/>
+---   
 
----
 ### Flowchart   
    
 ![image](https://github.com/shl2019/EmbeddedCW2/blob/main/Flow%20Chart.png)   
+<br/>
+---   
 
----
 ### Identification of Shared Data Structure and Methods for Safe Access and Synchronisation   
 
 The first data struct we have used is a mutex, A Mutex is a Mutually exclusive flag. It acts as a gatekeeper to a section of code allowing one thread in and blocking access to all others. This ensures that the code being controlled will only be hit by a single thread at a time.   
@@ -99,8 +104,9 @@ and taken by  CAN_TX_Task before CAN_TX.
 ```
 xSemaphoreTake(CAN_TX_Semaphore, portMAX_DELAY);
 ```
+<br/>
+---   
 
----
 ### Inter-task Blocking Dependencies Analysis and Deadlock Possibility   
 
 Blocking dependencies are generally used at the start of the thread to avoid the tread stack in the infinite loop, for example, in the scanKey task,   
@@ -125,4 +131,4 @@ In a similar application with the decode_task, the CAN_RX_ISR is triggered by an
 xQueueReceive(msgInQ, RX_Message, portMAX_DELAY);
 ```
 It then decodes the RX message. To avoid the potential problem and optimise the execution time of every task, we didn’t write the code to play the note here, but we write it with an if loop in scanKey_task. The decode task could potentially be removed, but we keep it here for completion of the task.   
-
+<br/>
