@@ -2,9 +2,10 @@
 ## Go Inbed Group
 
 
----   
+  
 ### Music Synthesizer
-![image2](https://github.com/shl2019/EmbeddedCW2/blob/main/Music%20Synthesizer.png)
+
+<img src="https://github.com/shl2019/EmbeddedCW2/blob/main/Music%20Synthesizer.png" width="550" height="500">
 <br/>
 
 ---   
