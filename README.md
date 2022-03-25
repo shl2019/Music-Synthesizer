@@ -31,9 +31,8 @@ When the keyboard is set to TX(transmitting) mode, it will not generated any sou
 ---   
 
 ### Video Demo   
+
 Please find the Demo via this link: https://web.microsoftstream.com/video/0a6d23d4-fab1-4962-8104-bb528b7e5a7b
-<br/>
-<br/>
 <br/>
 
 ---   
