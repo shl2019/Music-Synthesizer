@@ -34,6 +34,6 @@ The latency result shows that all tasks are executed within the initiation inter
 
 ---
 ### Flowchart
-<br/>
+
 ![image](https://github.com/shl2019/EmbeddedCW2/blob/main/Flow%20Chart.png)
-<br/>
+
