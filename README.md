@@ -1,6 +1,24 @@
 # **Embedded Systems CW2 Music Synthesizer**
 ## Go Inbed Group
 
+### Identification of All our Tasks   
+
+There are four main tasks implemented in our system, ScanKeysTask, CAN_TX_Task, decodeTask, and displayUpdateTask.   
+
+---
+#### scanKeyTask   
+The ScanKeyTask is the thread that initialled with delay, it scans the key array to detect if keys or knobs have been pressed, also the joystick. It then performs the associated configuration, for example, the octave, timbre, mode and timbre selection. The information will also be sent to another keyboard by the thread-safe queue. Once everything is configured, the Sample_ISR which is interrupt triggered will write the output voltage to the speaker.
+
+#### displayUpdateTask   
+The displayUpdateTask is a thread that has no dependency with the other task, it is set with an initiation interval of 100ms, it will update the key pressed, volume, joystick, etc on the display. This task is the only task of the four total tasks that don’t have an interrupt.   
+
+#### decodeTask   
+The decode_Task is a thread also triggered by the message queue, to minimise the execution time for this task, we didn’t do anything else but receive the Message_RX. The CAN_RX function is in an ISR called CAN_RX_ISR, so the interrupt is called whenever received a CAN message.   
+
+#### CAN_TX_Task   
+The CAN_TX_Task is the thread that is triggered by the message queue and semaphore, it will only execute when there are messages in the In Mailbox and take the semaphore, the semaphore will be given in CAN_TX_ISR so every time the mailbox becomes available the semaphore will be given.   
+
+
 ---
 ### Characterisation of Tasks and CPU Time Utilisation
 
@@ -35,6 +53,75 @@ The latency result shows that all tasks are executed within the initiation inter
 ---
 ### Flowchart   
    
-![image](https://github.com/shl2019/EmbeddedCW2/blob/main/Flow%20Chart.png)
-   
-#
+![image](https://github.com/shl2019/EmbeddedCW2/blob/main/Flow%20Chart.png)   
+
+---
+### Identification of Shared Data Structure and Methods for Safe Access and Synchronisation   
+
+The first data struct we have used is a mutex, A Mutex is a Mutually exclusive flag. It acts as a gatekeeper to a section of code allowing one thread in and blocking access to all others. This ensures that the code being controlled will only be hit by a single thread at a time.   
+
+```
+SemaphoreHandle_t keyArrayMutex;   
+```
+
+It is defined to keyarray to avoid multi-accessing, it is lockedby   
+
+```
+xSemaphoreTake(keyArrayMutex, portMAX_DELAY);   
+```
+
+in scanKey tread when read the keyboard input and unlocked by   
+
+```
+xSemaphoreGive(keyArrayMutex);   
+```
+
+when reading ends.  
+<br/>
+
+The second data struct we used is semaphore, when sharing/sending the data across the thread, we don’t want the CPU cycle to be used by polling that doesn’t do anything. For example, we define a semaphore to our CAN_TX function,   
+
+```
+SemaphoreHandle_t CAN_TX_Semaphore;
+```
+
+ We use Semaphore to indicate if the message can be accepted, the Semaphore will be given by CAN_TX_ISR when the is space in msgOutQ mailbox,   
+
+```
+void CAN_TX_ISR (void) {
+    xSemaphoreGiveFromISR(CAN_TX_Semaphore, NULL);
+}
+```
+
+and taken by  CAN_TX_Task before CAN_TX.   
+
+```
+xSemaphoreTake(CAN_TX_Semaphore, portMAX_DELAY);
+```
+
+---
+### Inter-task Blocking Dependencies Analysis and Deadlock Possibility   
+
+Blocking dependencies are generally used at the start of the thread to avoid the tread stack in the infinite loop, for example, in the scanKey task,   
+```
+vTaskDelayUntil( &xLastWakeTime, xFrequency );
+```
+The two input arguments are the initiation interval of the task and the current time, it will place the thread in the block until the next xFrequency, when it is in the block, the CPU will run the other thread until it is unblocked.   
+
+The other dependency is the thread-safe queues,we have defined those for both CAN_TX_ISR and CAN_RX_ISR.    
+```
+QueueHandle_t msgInQ;
+QueueHandle_t msgOutQ;
+```
+It eliminated the deadlock by CAN_TX function because when the message sent by CAN_TX is not received CAN_RX, it will block and the RTOS will go into a deadlock, now with the message queue, we are sending Message_TX by queue, and using CAN_TX in the CAN_TX_task that is blocked by,   
+```
+xQueueReceive(msgOutQ, msgOut, portMAX_DELAY);
+```
+which means the thread will not execute unless receive a message sent by a queue.    
+
+In a similar application with the decode_task, the CAN_RX_ISR is triggered by an interrupt, it then put Message_RX in the queue, the decode_task is blocked until received the message.   
+```
+xQueueReceive(msgInQ, RX_Message, portMAX_DELAY);
+```
+It then decodes the RX message. To avoid the potential problem and optimise the execution time of every task, we didn’t write the code to play the note here, but we write it with an if loop in scanKey_task. The decode task could potentially be removed, but we keep it here for completion of the task.   
+
