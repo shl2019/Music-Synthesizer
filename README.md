@@ -2,9 +2,18 @@
 ## Go Inbed Group
 
 
+### User Interface   
+
+The joy stick is configured to changing the note frequency lightly.   
+The first knob on the left is a press knob that will change the keyboard mode between transmit/receive.   
+The second knob is for octave selection. The third knob is for timbre selection.   
+The fourth knob is for volume selection.   
+When the keyboard is set to TX(transmitting) mode, it will not generated any sound, but auto-configured as an extension of RX keyboard and play corresponding octave.
+
+
 ---   
 
-### Identification of All our Tasks   
+### Identification of All Tasks   
 
 There are four main tasks implemented in our system, ScanKeysTask, CAN_TX_Task, decodeTask, and displayUpdateTask.   
 
